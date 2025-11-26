@@ -1,4 +1,8 @@
 export async function POST(request) {
+console.log("🔑 GROQ KEY EXISTS:", !!process.env.GROQ_API_KEY)
+console.log("🔑 GROQ KEY LENGTH:", process.env.GROQ_API_KEY?.length)
+console.log("🔑 GROQ KEY STARTS WITH:", process.env.GROQ_API_KEY?.substring(0, 10)) 
+  
   try {
     const { message } = await request.json()
     
