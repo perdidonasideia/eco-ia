@@ -25,7 +25,7 @@ console.log("🔑 GROQ KEY STARTS WITH:", process.env.GROQ_API_KEY?.substring(0,
             content: message
           }
         ],
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant", // Modelo atualizado
         temperature: 0.7,
         max_tokens: 500,
         stream: false
