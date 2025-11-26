@@ -8,18 +8,30 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!input.trim()) return
+  if (!input.trim()) return
+  
+  setIsLoading(true)
+  setResponse("Eco: Processando seu pensamento...")
+  
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: input
+      }),
+    })
     
-    setIsLoading(true)
-    setResponse("Eco: Processando seu pensamento...")
-    
-    // Simulação de delay da API
-    setTimeout(() => {
-      setResponse(`Eco: Recebi sua mensagem de ${input.length} caracteres.\n\nModo espelho ativado. Aguardando integração com IA.`)
-      setIsLoading(false)
-    }, 1000)
+    const data = await res.json()
+    setResponse(data.response)
+  } catch (error) {
+    setResponse("Eco: Erro de conexão. Tente novamente.")
+  } finally {
+    setIsLoading(false)
   }
-
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-8">
       {/* Cabeçalho Centralizado */}
