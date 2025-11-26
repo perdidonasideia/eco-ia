@@ -5,18 +5,17 @@ export async function POST(request) {
     console.log("Mensagem recebida:", message)
 
     const HF_RESPONSE = await fetch(
-  "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large", // Tenta essa primeiro
+      "https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-large", // URL CORRIGIDA
   {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
-      "Content-Type": "application/json",
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
+        "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      inputs: message,
-      parameters: {
-        max_new_tokens: 100,
-        return_full_text: false
+      body: JSON.stringify({
+        inputs: message,
+        parameters: {
+          max_new_tokens: 100
       }
     }),
   }
