@@ -1,5 +1,11 @@
+
+
+
 // 🔁 Reiniciando deploy para carregar variáveis ambiente
 export async function POST(request) {
+console.log("TOKEN EXISTS?", !!process.env.HUGGINGFACE_TOKEN)
+console.log("TOKEN LENGTH:", process.env.HUGGINGFACE_TOKEN?.length)
+  
   try {
     const { message } = await request.json()
     
