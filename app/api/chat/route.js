@@ -1,3 +1,4 @@
+// 🔁 Reiniciando deploy para carregar variáveis ambiente
 export async function POST(request) {
   try {
     const { message } = await request.json()
