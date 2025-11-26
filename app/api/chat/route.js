@@ -3,7 +3,7 @@ import { ChromaClient } from 'chromadb'
 const client = new ChromaClient()
 
 // DADOS QUE SERÃO INSERIDOS NO BANCO
-// DADOS QUE SERÃO INSERIDOS NO BANCO
+
 const knowledgeBase = [
   {
     id: "manifesto-ontologias-vivas",
