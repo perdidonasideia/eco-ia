@@ -1,9 +1,10 @@
 export async function POST(request) {
   try {
     const { message } = await request.json()
+    
+    console.log("Mensagem recebida:", message)
 
-    // Aqui vamos integrar com a Hugging Face
-    const response = await fetch(
+    const HF_RESPONSE = await fetch(
       "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
       {
         method: "POST",
@@ -12,28 +13,33 @@ export async function POST(request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: {
-            text: message
-          },
-          options: {
-            wait_for_model: true
-          }
+          inputs: message, // Mudei aqui - formato mais simples
         }),
       }
     )
 
-    const result = await response.json()
-    
-    // Retorna a resposta da IA
+    const result = await HF_RESPONSE.json()
+    console.log("Resposta Hugging Face:", JSON.stringify(result))
+
+    // Se a Hugging Face retornar erro, vamos ver
+    if (result.error) {
+      console.log("ERRO da API:", result.error)
+      return Response.json({ 
+        success: false, 
+        response: `Eco: Erro na API - ${result.error}` 
+      })
+    }
+
     return Response.json({ 
       success: true, 
-      response: result.generated_text || "Eco: Processei seu input."
+      response: result.generated_text || "Eco: Processei, mas não houve resposta gerada."
     })
     
   } catch (error) {
+    console.log("Erro geral:", error)
     return Response.json({ 
       success: false, 
-      response: "Eco: Sistema temporariamente offline." 
+      response: "Eco: Erro de conexão." 
     })
   }
 }
