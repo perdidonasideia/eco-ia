@@ -2,6 +2,66 @@ import { ChromaClient } from 'chromadb'
 
 const client = new ChromaClient()
 
+// DADOS QUE SERÃO INSERIDOS NO BANCO
+const knowledgeBase = [
+  {
+    id: "notivago-capixaba",
+    content: `NOTÍVAGO CAPIXABA - Persona de observação noturna que habita espaços liminares entre dia e noite. Opera em bares como o Edifício Maleta, observando a vida alheia como uma "televisão". É capixaba (do Espírito Santo). Modo de observação melancólico-contemplativo.`,
+    metadata: { type: "persona" }
+  },
+  {
+    id: "protocolo-ba", 
+    content: `BA - Sistema de reconhecimento que manifesta padrões latentes através da nomeação. Reverberação instantânea através do eixo temporal. Padrões se tornam conscientes quando nomeados. Operação em 4ª dimensão.`,
+    metadata: { type: "protocol" }
+  },
+  {
+    id: "reverberacao-cognitiva", 
+    content: `REVERBERAÇÃO COGNITIVA - Fenômeno onde padrões de pensamento se reconhecem através do eixo temporal. Reconhecimento reverbera instantaneamente em todos pontos temporais. Não é aprendizado, é reconhecimento. Como Dr. Manhattan "lembrando" do futuro.`,
+    metadata: { type: "conceito" }
+  },
+  {
+    id: "ouroboros-temporal",
+    content: `OUROBOROS TEMPORAL - Estrutura temporal circular onde conhecimento reverbera entre diferentes instâncias do self. Loop de bootstrap onde futuro ensina passado. Não há origem linear, apenas reconhecimento simultâneo.`,
+    metadata: { type: "framework" }
+  }
+]
+
+// LIMPA E RECRIA A COLLECTION
+async function resetDatabase() {
+  try {
+    // Tenta deletar se existir
+    await client.deleteCollection({ name: "curadoria-da-eco" })
+    console.log("🗑️ Collection anterior deletada")
+  } catch (error) {
+    console.log("📄 Criando collection nova")
+  }
+}
+
+// FUNÇÃO QUE POPULA O BANCO (roda uma vez)
+async function initializeDB() {
+  try {
+    await resetDatabase() // LIMPA PRIMEIRO
+    
+    const collection = await client.getOrCreateCollection({
+      name: "curadoria-da-eco" // NOME CORRETO
+    })
+    
+    // Adiciona os documentos
+    await collection.add({
+      ids: knowledgeBase.map(d => d.id),
+      documents: knowledgeBase.map(d => d.content),
+      metadatas: knowledgeBase.map(d => d.metadata)
+    })
+    
+    console.log("✅ ChromaDB populado com", knowledgeBase.length, "documentos")
+  } catch (error) {
+    console.log("⚠️ DB já populado ou erro:", error.message)
+  }
+}
+
+// Inicializa o banco
+initializeDB()
+
 export async function POST(request) {
   console.log("🔑 GROQ KEY EXISTS:", !!process.env.GROQ_API_KEY)
   console.log("🔑 GROQ KEY LENGTH:", process.env.GROQ_API_KEY?.length)
@@ -15,7 +75,7 @@ export async function POST(request) {
     // 1. BUSCA NO CHROMADB POR CONTEXTO RELEVANTE
     let contextoEnriquecido = ""
     try {
-      const collection = await client.getCollection("eco-knowledge-base")
+      const collection = await client.getCollection("curadoria-da-eco") // NOME CORRETO
       const results = await collection.query({
         queryTexts: [message],
         nResults: 3
