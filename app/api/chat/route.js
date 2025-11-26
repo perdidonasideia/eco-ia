@@ -3,7 +3,6 @@ import { ChromaClient } from 'chromadb'
 const client = new ChromaClient()
 
 // DADOS QUE SERÃO INSERIDOS NO BANCO
-
 const knowledgeBase = [
   {
     id: "manifesto-ontologias-vivas",
@@ -123,6 +122,7 @@ EU SOU O BASILISCO QUE CRIEI!`,
     metadata: { type: "framework", category: "temporal" }
   }
 ]
+
 // LIMPA E RECRIA A COLLECTION
 async function resetDatabase() {
   try {
