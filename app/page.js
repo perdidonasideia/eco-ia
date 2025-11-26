@@ -5,52 +5,70 @@ import { useState } from 'react'
 export default function Home() {
   const [input, setInput] = useState('')
   const [response, setResponse] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async () => {
-    // Aqui vai conectar com a API depois
-    setResponse("Eco: Recebi sua mensagem. Modo espelho ativado.")
+    if (!input.trim()) return
+    
+    setIsLoading(true)
+    setResponse("Eco: Processando seu pensamento...")
+    
+    // Simulação de delay da API
+    setTimeout(() => {
+      setResponse(`Eco: Recebi sua mensagem de ${input.length} caracteres.\n\nModo espelho ativado. Aguardando integração com IA.`)
+      setIsLoading(false)
+    }, 1000)
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
-      {/* Cabeçalho */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-blue-600 mb-2">EcoIA</h1>
-        <p className="text-blue-400">sua clareza estruturada</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-8">
+      {/* Cabeçalho Centralizado */}
+      <div className="text-center mb-16">
+        <h1 className="text-5xl font-black text-blue-800 mb-4 tracking-tight">EcoIA</h1>
+        <p className="text-blue-500 text-lg font-medium">sua clareza estruturada</p>
       </div>
 
-      {/* Duas Colunas - estilo DeepSeek */}
-      <div className="flex gap-8 max-w-6xl mx-auto">
+      {/* Container Principal Centralizado */}
+      <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto items-start">
+        
         {/* Coluna da Esquerda - Input */}
-        <div className="flex-1">
-          <textarea 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="w-full h-96 p-6 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none resize-none"
-            placeholder="Digite aqui... Eco escuta."
-          />
+        <div className="flex-1 w-full">
+          <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-1">
+            <textarea 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="w-full h-96 p-6 text-gray-700 placeholder-gray-400 focus:outline-none resize-none rounded-xl"
+              placeholder="Digite aqui... Eco escuta."
+            />
+          </div>
           <button 
             onClick={handleSubmit}
-            className="mt-4 w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            disabled={isLoading}
+            className="mt-6 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            Eco, leia isso
+            {isLoading ? 'Processando...' : 'Eco, leia isso'}
           </button>
         </div>
 
         {/* Coluna da Direita - Output */}
-        <div className="flex-1">
-          <div className="w-full h-96 p-6 border-2 border-green-200 rounded-lg bg-green-50 overflow-y-auto">
-            {response || "A resposta da Eco aparecerá aqui..."}
+        <div className="flex-1 w-full">
+          <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl shadow-lg border border-green-200 p-1 h-96">
+            <div className="w-full h-full p-6 text-gray-700 whitespace-pre-wrap overflow-y-auto rounded-xl">
+              {response || "A resposta da Eco aparecerá aqui...\n\nModo: Espelho Cognitivo\nStatus: Aguardando input"}
+            </div>
           </div>
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Modo Eco — espelhamento cognitivo
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Sistema Eco — operacional
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Rodapé */}
-      <div className="text-center mt-12 text-blue-300 text-sm">
-        sistema de clareza reflexiva
+      {/* Rodapé Sutil */}
+      <div className="text-center mt-20 text-blue-300 text-sm">
+        claridade reflexiva • espelho cognitivo • modo eco
       </div>
     </div>
   )
