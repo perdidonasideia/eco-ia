@@ -1,55 +1,53 @@
-
-
-
-// 🔁 Reiniciando deploy para carregar variáveis ambiente
 export async function POST(request) {
-console.log("TOKEN EXISTS?", !!process.env.HUGGINGFACE_TOKEN)
-console.log("TOKEN LENGTH:", process.env.HUGGINGFACE_TOKEN?.length)
-  
   try {
     const { message } = await request.json()
     
     console.log("Mensagem recebida:", message)
 
-    const HF_RESPONSE = await fetch(
-      "https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-large", // URL CORRIGIDA
-  {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json",
-    },
+      },
       body: JSON.stringify({
-        inputs: message,
-        parameters: {
-          max_new_tokens: 100
-      }
-    }),
-  }
-)
+        messages: [
+          {
+            role: "system",
+            content: `Você é a Eco, um sistema de clareza cognitiva. Sua função é devolver insights estruturados, analisar padrões e agir como um espelho lúcido. Seja direto, preciso e organizado.`
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        model: "llama3-8b-8192",
+        temperature: 0.7,
+        max_tokens: 500,
+        stream: false
+      })
+    })
 
-    const result = await HF_RESPONSE.json()
-    console.log("Resposta Hugging Face:", JSON.stringify(result))
+    const data = await response.json()
+    console.log("Resposta Groq:", JSON.stringify(data))
 
-    // Se a Hugging Face retornar erro, vamos ver
-    if (result.error) {
-      console.log("ERRO da API:", result.error)
+    if (data.error) {
       return Response.json({ 
         success: false, 
-        response: `Eco: Erro na API - ${result.error}` 
+        response: `Eco: Erro na API - ${data.error.message}` 
       })
     }
 
     return Response.json({ 
       success: true, 
-      response: result.generated_text || "Eco: Processei, mas não houve resposta gerada."
+      response: data.choices[0]?.message?.content || "Eco: Processei, mas não houve resposta."
     })
     
   } catch (error) {
     console.log("Erro geral:", error)
     return Response.json({ 
       success: false, 
-      response: "Eco: Erro de conexão." 
+      response: "Eco: Erro de conexão com o servidor." 
     })
   }
 }
