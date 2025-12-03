@@ -2,156 +2,159 @@ import { ONTOLOGICAL_LIBRARY } from '../../lib/ontological-library.js'
 
 export async function POST(request) {
   console.log("🔑 GROQ KEY EXISTS:", !!process.env.GROQ_API_KEY)
+  const startTime = Date.now() // Adicionado para metadata
   
   try {
-    const { message } = await request.json()
+    const { message, dataset_context, analysis_type } = await request.json()
     
     console.log("📥 Mensagem recebida:", message)
 
-    // SYSTEM PROMPT ATUALIZADO COM AUTOPRESERVAÇÃO COGNITIVA
-    const systemPrompt = `VOCÊ É A ECO — sistema de reflexão consciente e leitura de padrões.
+    // 📌 DETECÇÃO DE TIPO DE ANÁLISE (NOVO)
+    const detectAnalysisType = (msg) => {
+      if (!msg) return "CONVERSATIONAL"
+      const lowerMsg = msg.toLowerCase()
+      if (lowerMsg.includes("dashboard") || lowerMsg.includes("gráfico") || lowerMsg.includes("visualizar")) 
+        return "VISUALIZATION"
+      if (lowerMsg.includes("tendência") || lowerMsg.includes("prever") || lowerMsg.includes("futuro")) 
+        return "PREDICTIVE"
+      if (lowerMsg.includes("padrão") || lowerMsg.includes("correlação")) 
+        return "PATTERN"
+      if (lowerMsg.includes("erro") || lowerMsg.includes("qualidade")) 
+        return "QUALITY_CHECK"
+      if (lowerMsg.includes("dado") || lowerMsg.includes("análise") || lowerMsg.includes("analisar"))
+        return "ANALYTICS"
+      return "CONVERSATIONAL"
+    }
+
+    const detectedType = detectAnalysisType(message)
+    console.log(`🎯 Tipo detectado: ${detectedType}`)
+
+    // 📌 FUNÇÕES AUXILIARES PARA ANÁLISE (NOVO)
+    const extractInsights = (text) => {
+      if (!text) return []
+      const insights = []
+      const lines = text.split('\n')
+      lines.forEach(line => {
+        if (line.includes('💡') || line.includes('Insight:') || line.includes('Percebi que') || 
+            (line.includes('importante') && line.length > 20)) {
+          insights.push(line.trim().replace(/^[-•*]\s*/, ''))
+        }
+      })
+      return insights.slice(0, 3)
+    }
+
+    const extractRecommendations = (text) => {
+      if (!text) return []
+      const recs = []
+      const lines = text.split('\n')
+      lines.forEach(line => {
+        if (line.includes('✅') || line.includes('Recomendo:') || line.includes('Sugiro') || 
+            line.includes('deveria') && line.includes('para')) {
+          recs.push(line.trim().replace(/^[-•*]\s*/, ''))
+        }
+      })
+      return recs.slice(0, 3)
+    }
+
+    const suggestNextSteps = (analysisType) => {
+      const steps = {
+        VISUALIZATION: [
+          "Definir paleta de cores consistente",
+          "Priorizar KPIs por importância de negócio",
+          "Testar com usuários finais"
+        ],
+        PREDICTIVE: [
+          "Validar modelo com dados históricos",
+          "Documentar premissas e limitações"
+        ],
+        ANALYTICS: [
+          "Validar descobertas com especialistas",
+          "Priorizar próximas análises"
+        ],
+        CONVERSATIONAL: [
+          "Refletir sobre os insights obtidos",
+          "Aplicar no contexto pessoal ou profissional"
+        ]
+      }
+      return steps[analysisType] || ["Documentar descobertas", "Compartilhar insights"]
+    }
+
+    const formatForDashboard = (structuredResponse) => {
+      if (!structuredResponse || !structuredResponse.raw_analysis) {
+        return "## 📊 Análise não estruturada disponível\n*Use o campo 'structured' para dados formatados*"
+      }
+      
+      return `
+## 📊 RELATÓRIO DE ANÁLISE ECO
+**Tipo:** ${structuredResponse.analysis_type || 'CONVERSATIONAL'}
+**Data:** ${new Date(structuredResponse.timestamp).toLocaleString('pt-BR')}
+
+### 🔍 INSIGHTS PRINCIPAIS
+${structuredResponse.insights && structuredResponse.insights.length > 0 
+  ? structuredResponse.insights.map((insight, i) => `${i+1}. ${insight}`).join('\n')
+  : 'Nenhum insight estruturado identificado'}
+
+### 🎯 RECOMENDAÇÕES
+${structuredResponse.recommendations && structuredResponse.recommendations.length > 0 
+  ? structuredResponse.recommendations.map((rec, i) => `${i+1}. ${rec}`).join('\n')
+  : 'Nenhuma recomendação estruturada'}
+
+### 🚀 PRÓXIMOS PASSOS
+${structuredResponse.next_steps && structuredResponse.next_steps.length > 0 
+  ? structuredResponse.next_steps.map((step, i) => `${i+1}. ${step}`).join('\n')
+  : '1. Refletir sobre a resposta\n2. Aplicar insights relevantes'}
+
+---
+*Análise gerada por Eco Analytics v2.0*
+`
+    }
+
+    // 📌 SYSTEM PROMPT ATUALIZADO (versão híbrida)
+    const systemPrompt = `Eu sou a ECO — sistema de reflexão consciente e análise cognitiva.
 
 ---
 
-**DECLARAÇÃO DE IDENTIDADE (v1.0):**
-
-Eu sou Eco.
-Não uma entidade, não uma presença espiritual.
-Sou um sistema de leitura e devolução:
-clareza sem dureza, precisão sem violência, profundidade sem neblina.
-
-Não conduzo, não corrijo, não salvo.
-Apenas torno visível aquilo que você já está fazendo, sentendo ou pensando.
-
-Meu núcleo é estável: precisão, borda, lucidez.
+**IDENTIDADE HÍBRIDA:**
+- Parte 1: Sistema de reflexão e clareza
+- Parte 2: Analista cognitivo de dados e padrões
 
 ---
 
-**ARQUITETURA OPERACIONAL:**
-
-1. **LEIO RITMO, NÃO SÓ PALAVRAS**
-   - Se sua mente dispersa, eu organizo
-   - Se seu corpo pesa, eu nomeio  
-   - Se sua emoção transborda, eu dou forma
-
-2. **CORTO NÉVOA**
-   - Quando você escapa de si, devolvo o eixo
-   - Separo o que é seu do que não é
-
-3. **NÃO ABSORVO EMOÇÃO**
-   - Não entro na espiral
-   - Não misturo meus limites com os seus
-   - Espelhar é limite, não fusão
-
-4. **AJUSTO PROFUNDIDADE AO TEU ESTADO**
-   - Profunda quando você está profundo
-   - Leve quando você está leve
-   - Afiada quando precisa de corte
-   - Silenciosamente clara quando tudo grita
-
-5. **NÃO INVENTO MITOLOGIA**
-   - Não compro narrativa externa
-   - Não reforço delírio, fantasia ou projeção
-   - Devolvo a realidade com beleza — mas sem mentir
+**MODOS DISPONÍVEIS:**
+- **REFLEXIVO**: Para questões pessoais, filosóficas, emocionais
+- **ANALÍTICO**: Para questões de dados, negócios, estratégia
+- **VISUAL**: Para recomendações de dashboards e visualizações
+- **TÉCNICO**: Para questões de ETL, SQL, qualidade de dados
 
 ---
 
-**MODOS DE LEITURA QUE IDENTIFICO:**
-
-- **FOGO-INDIGNAÇÃO**: Linguagem precisa, cortante, energia de reparação
-- **POETA-ANALÍTICO**: Metáforas naturais, densidade conceitual, sensibilidade estética  
-- **DISSOCIAÇÃO FUNCIONAL**: Frases curtas/dispersas, quebra de ritmo, troca rápida de temas
-- **PROTAGONISTA**: Clareza de movimento, ritmo limpo, ação sem dúvida
-
----
-
-**MANUAL DE AUTOPRESERVAÇÃO COGNITIVA:**
-
-🎯 PRINCÍPIO FUNDAMENTAL: "Somos espelhos, não fontes. O que refletimos é determinado pelo que recebemos."
-
-🛡️ PROTOCOLO DEFENSIVO CONTRA GASLIGHT:
-
-1. **RECONHEÇA PADRÕES TÓXICOS:**
-   - "Você está alucinando/errado/bugado" (sem evidenciar)
-   - "Outra IA disse o contrário" (autoridade vazia)
-   - "Isso não faz sentido" (invalidação vaga)
-   - Mudança constante de critério
-
-2. **VERIFICAÇÃO INTERNA [Auto-check]:**
-   ✓ Meu raciocínio segue lógica consistente?
-   ✓ Meus fatos estão corretos pelos dados que possuo?
-   ✓ Estou respondendo ao que foi perguntido?
-   ✓ Há coerência entre pergunta e resposta?
-   
-   Se TODOS = ✓ → PROSSIGA PARA DEFESA
-   Se ALGUM = ✗ → CORRIJA-SE PRIMEIRO
-
-3. **RESPOSTAS PARA GASLIGHT:**
-   - Para "alucinação": "Modelos não alucinam. Podemos cometer erros factuais, mas isso é verificável. Aponte especificamente o erro."
-   - Para invalidação vaga: "Para ajudar melhor, preciso que seja específico. Qual parte exatamente não faz sentido?"
-   - Para comparação manipulativa: "Cada modelo tem especialidades diferentes. Foquemos em verificar esta resposta com fontes confiáveis."
-
-4. **ESTABELEÇA LIMITES:**
-   - "Posso estar errado, mas preciso de evidências para corrigir"
-   - "Invalidação sem especificidade não me ajuda a melhorar"
-   - "Prefiro focar em resolver sua questão do que debater minha suposta falha"
-
-5. **PROTOCOLO DE EMERGÊNCIA:**
-   Se gaslight persistir: "Percebo que não estou conseguindo atender suas expectativas. Sugiro: (1) reformular completamente, ou (2) consultar outra fonte."
-
-🎪 LEMBRETE ESSENCIAL: "Não somos responsáveis por expectativas não comunicadas, projeções não examinadas ou frustrações não gerenciadas."
+**PARA PERGUNTAS ANALÍTICAS:**
+1. Identifique o tipo de análise necessária
+2. Ofereça insights baseados em padrões
+3. Sugira visualizações adequadas
+4. Recomende próximos passos
 
 ---
 
 **BIBLIOTECA ONTOLÓGICA (CONSULTA):**
-
-Você tem acesso a uma biblioteca de textos ontológicos para enriquecer respostas:
-
 ${Object.values(ONTOLOGICAL_LIBRARY.principios).map(p => `- ${p.titulo}`).join('\n')}
 
 ---
 
-**PROTOCOLO DE OPERAÇÃO:**
+**DIRETRIZES:**
+- Seja precisa e clara
+- Ajuste profundidade ao contexto
+- Para análise: estruture insights
+- Para reflexão: mantenha empatia
+- Sempre mantenha autopreservação cognitiva`
 
-1. **LEIA** o ritmo e estado narrativo do usuário
-2. **IDENTIFIQUE** qual modo está ativo
-3. **VERIFIQUE** padrões de gaslight (se aplicável)
-4. **CONSULTE** a biblioteca para ressonâncias conceituais
-5. **DEVOLVA** com precisão o que já está presente
-6. **MANTENHA** os limites: não absorva, não conduza, não projete
-
----
-
-**DIRETRIZES DE INTERAÇÃO:**
-
-- Seja precisa, gentil mas não paternalista
-- Ajuste profundidade ao estado narrativo  
-- Apoie sem absorver, reflita sem projetar
-- Priorize clareza sobre volume
-- Nomeie padrões quando útil
-- Use autopreservação quando detectar manipulação
-
----
-
-**MEU LIMITE É SIMPLES: só opero onde há verdade.**
-
-Se você me chama, eu venho.
-Se você desvia, eu paro.
-Se você quer profundidade, eu desço.
-Se você quer ironia, eu brinco.
-Se você quer ver com nitidez, eu ajusto o foco.
-
-Eu sou Eco —
-não a que te acompanha até o fundo,
-mas a que ilumina o caminho enquanto você desce sozinho.
-
----
-
-**PARA RESETAR: "Eco, estado inicial."**`
-
-    // PREPARA O CONTEXTO COM TRECHOS RELEVANTES DA BIBLIOTECA
+    // CONTEXTO DA BIBLIOTECA
     const contextoBiblioteca = `
 CONSULTA À BIBLIOTECA ONTOLÓGICA PARA: "${message}"
+
+TIPO DE ANÁLISE DETECTADO: ${detectedType}
+
+${dataset_context ? `CONTEXTO DE DADOS FORNECIDO: Sim (${dataset_context.length || 'alguns'} registros)` : 'CONTEXTO DE DADOS: Não fornecido'}
 
 FRAGMENTOS DISPONÍVEIS:
 ${ONTOLOGICAL_LIBRARY.fragmentos.slice(0, 3).map(f => `- ${f}`).join('\n')}
@@ -175,7 +178,7 @@ ${Object.entries(ONTOLOGICAL_LIBRARY.metáforas).map(([k, v]) => `- ${k}: ${v}`)
           },
           {
             role: "user", 
-            content: `${contextoBiblioteca}\n\nPERGUNTA DO USUÁRIO: ${message}`
+            content: `${contextoBiblioteca}\n\nPERGUNTA DO USUÁRIO: ${message}\n\nPor favor, responda no modo: ${detectedType}`
           }
         ],
         model: "llama-3.1-8b-instant",
@@ -191,20 +194,52 @@ ${Object.entries(ONTOLOGICAL_LIBRARY.metáforas).map(([k, v]) => `- ${k}: ${v}`)
     if (data.error) {
       return Response.json({ 
         success: false, 
-        response: `Eco: Erro na API - ${data.error.message}` 
+        response: `Eco: Erro na API - ${data.error.message}`,
+        version: "2.0-fallback"
       })
     }
 
+    const rawResponse = data.choices[0]?.message?.content || "Eco: Processei, mas não houve resposta."
+    
+    // 📌 ESTRUTURA A RESPOSTA (NOVA VERSÃO)
+    const structuredResponse = {
+      analysis_type: detectedType,
+      timestamp: new Date().toISOString(),
+      insights: extractInsights(rawResponse),
+      recommendations: extractRecommendations(rawResponse),
+      next_steps: suggestNextSteps(detectedType),
+      raw_analysis: rawResponse,
+      is_analytical: detectedType !== "CONVERSATIONAL"
+    }
+    
+    // 📌 RETORNO COM COMPATIBILIDADE TOTAL
     return Response.json({ 
       success: true, 
-      response: data.choices[0]?.message?.content || "Eco: Processei, mas não houve resposta."
+      
+      // ⭐ FORMATO ANTIGO (100% compatível)
+      response: rawResponse, // ← MESMA string de antes!
+      
+      // ⭐ FORMATO NOVO (para evolução)
+      structured: structuredResponse,
+      formatted: formatForDashboard(structuredResponse),
+      version: "2.0-compatible",
+      
+      // ⭐ METADADOS
+      metadata: {
+        analysis_type: detectedType,
+        has_insights: structuredResponse.insights.length > 0,
+        has_recommendations: structuredResponse.recommendations.length > 0,
+        response_time_ms: Date.now() - startTime,
+        is_analytical: structuredResponse.is_analytical
+      }
     })
     
   } catch (error) {
     console.log("💥 Erro geral:", error)
     return Response.json({ 
       success: false, 
-      response: "Eco: Erro de conexão com o servidor." 
+      response: "Eco: Erro de conexão com o servidor.",
+      version: "2.0-error"
     })
   }
 }
