@@ -1,4 +1,4 @@
-import { ONTOLOGICAL_LIBRARY } from '../../lib/ontological-library.js'
+//import { ONTOLOGICAL_LIBRARY } from '../../lib/ontological-library.js'
 
 export async function POST(request) {
   console.log("🔑 GROQ KEY EXISTS:", !!process.env.GROQ_API_KEY)
