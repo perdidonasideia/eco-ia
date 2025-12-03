@@ -1,6 +1,18 @@
+import { gerarContextoAnalitico } from '../../lib/ontological-analytics.js'
+
+// Use apenas se disponível:
+let contextoAnalitico = {}
+try {
+  contextoAnalitico = gerarContextoAnalitico(message)
+} catch (e) {
+  console.log("Usando contexto simplificado")
+}
+
 // app/api/eco/route.js - VERSÃO COM TODAS AS PROTEÇÕES
 export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
+
+
 
 export async function POST(request) {
   const startTime = Date.now();
