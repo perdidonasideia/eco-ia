@@ -1,4 +1,4 @@
-import { gerarContextoAnalitico } from '../../lib/ontological-analytics.js'
+import { gerarContextoAnalitico } from '../../lib/ontological-library.js'
 
 // Use apenas se disponível:
 let contextoAnalitico = {}
